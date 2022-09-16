@@ -1,0 +1,13 @@
+.square{
+    width: 5rem;
+    height: 5rem;
+    font-size: 3rem;
+    text-transform: capitalize;
+    cursor: pointer;
+    background-color: white;
+    border: 1px solid black;
+}
+#a, #b, #c { border-top: none; }
+#a, #d, #g { border-left: none; }
+#c, #f, #i { border-right: none; }
+#g, #h, #i { border-bottom: none; }

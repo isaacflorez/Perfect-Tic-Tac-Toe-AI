@@ -1,0 +1,11 @@
+.gameover{
+    margin-top: 3rem;
+    text-align: center;
+}
+.gameover_message{
+    font-size: 1.25rem;
+}
+.reset_board{
+    font-size: 1rem;
+    padding: .25rem;
+}
