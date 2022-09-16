@@ -1,7 +1,6 @@
 *, *::before, *::after{
   box-sizing: border-box;
 }
-
 .App{
   width: 100%;
   display: flex;
@@ -9,4 +8,5 @@
   justify-content: center;
   align-items: center;
   border: .5rem solid green;
+  height: 100vh;
 }
