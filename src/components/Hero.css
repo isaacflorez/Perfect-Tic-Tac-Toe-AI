@@ -1,6 +1,7 @@
 .hero {
     text-align: center;
     border: 1px solid red;
+    background-color: blue;
 }
 .hero_title, .hero_sub_title{
     margin: 0;
