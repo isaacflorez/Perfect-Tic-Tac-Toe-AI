@@ -5,7 +5,7 @@ const Square = (props) => {
   const {context} = useContext(BoardContext)
   return (
     <button 
-        onClick={() => context.actions.printLocation(props.location)}
+        onClick={() => context.actions.checkMove(props.location)}
         className="square" 
         id={props.id}>{props.value}</button>
   )
