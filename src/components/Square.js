@@ -1,9 +1,13 @@
 import './Square.css'
 const Square = (props) => {
-    const value = "o"
   return (
-    <button className="square" id={props.id}>{value}</button>
+    <button onClick={printLocation(props.location)} className="square" id={props.id}>{props.value}</button>
   )
 }
 
 export default Square
+
+let printLocation = (location) => {
+  // console.log(`Clicked at (${location[0]}, ${location[1]})`)
+  console.log(location)
+}
