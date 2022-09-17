@@ -1,7 +1,13 @@
+import { useContext } from 'react'
+import BoardContext from './Context/BoardContext'
 import './Square.css'
 const Square = (props) => {
+  const {context} = useContext(BoardContext)
   return (
-    <button onClick={() => printLocation(props.location)} className="square" id={props.id}>{props.value}</button>
+    <button 
+        onClick={() => context.actions.printLocation(props.location)}
+        className="square" 
+        id={props.id}>{props.value}</button>
   )
 }
 
