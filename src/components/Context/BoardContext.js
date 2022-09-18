@@ -23,22 +23,23 @@ export function ListProvider({ children }){
         [ [0,2], [1,1], [2,0] ]     // tr diagnol to bl
     ]
 
+
     useEffect(() => {
-        // if winner then
-            // change message
-            // freeze board
-        // else
-            // change player
         if(isWinner()){
             setMessage(`${currentPlayer} is the winner`)
             setGameOver(true)
-            setCurrentPlayer('X')
-        } else {
-            currentPlayer === 'X'
-            ? setCurrentPlayer('O') 
-            : setCurrentPlayer('X')
-        }
+            // setCurrentPlayer('X')
+        } 
+        else changePlayer()
     }, [boardData])
+
+
+    // updates current player
+    let changePlayer = () => {
+        currentPlayer === 'X'
+        ? setCurrentPlayer('O') 
+        : setCurrentPlayer('X')
+    }
 
 
     // see if move is valid or not
@@ -47,13 +48,8 @@ export function ListProvider({ children }){
             let [x, y] = [location[0], location[1]]     // get coordinates
             if(boardData[x][y] === ''){                 // check if spot on the board is empty
                 addMoveToBoard(x,y)                     // update board with new move
-            } else {
-                console.log('clicked filled space')
             }
-        } else {
-            alert('reset board to play again')
-        }                         
-        
+        } else alert('reset board to play again')                      
     }
 
 
@@ -63,6 +59,7 @@ export function ListProvider({ children }){
         temp[x][y] = currentPlayer      // mark square
         setBoardData(temp)
     }
+
 
     // check if board contains any of the winning combos
     // FIND A BETTER WAY TO DO THIS (:
@@ -80,6 +77,7 @@ export function ListProvider({ children }){
         return false
     }
 
+
     let cleanBoard = () => {        // resets board with empty values
         setBoardData(
             [
@@ -89,13 +87,16 @@ export function ListProvider({ children }){
             ]
         )
         setGameOver(false)
+        setCurrentPlayer('X')
         setMessage('may luck be in your favor')
     }
+
 
     const context = {
         actions: {checkMove, cleanBoard},
         state: {boardData, setBoardData, message}
     }
+
 
     return (
         <BoardContext.Provider value={{context}}>
@@ -103,5 +104,4 @@ export function ListProvider({ children }){
         </BoardContext.Provider>
     )
 }
-
 export default BoardContext
