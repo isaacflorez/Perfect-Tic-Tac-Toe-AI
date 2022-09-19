@@ -22,7 +22,7 @@ export function ListProvider({ children }){
         if(isBoardEmpty()){                         // start game as X when board is clear
             setCurrentPlayer('X')
         }
-        else if(isWinner()){                        // check if there is a winner 
+        else if(isWinner(boardData, 'X') || isWinner(boardData, 'O')){        // check for winner
             setMessage(`${currentPlayer} wins`)     // set winning message
             setGameOver(true)                       // game over is true
             setCurrentPlayer('X')                   // player reset to X for new game
@@ -32,11 +32,13 @@ export function ListProvider({ children }){
             setGameOver(true)           // game over is true
             setCurrentPlayer('X')       // player reset to X for new game
         }
-        else if(currentPlayer === 'O'){             // @ on AI turn
-            setTimeout(() => {                      // wait .5 seconds before playing
-                makeRandomMove()                    // make a random move
-                if(!isWinner()) changePlayer()      // check for win, if not change players
-            }, 500);
+        else if(currentPlayer === 'O'){                 // @ on AI turn
+            setTimeout(() => {                          // wait .25 seconds before playing
+                makeRandomMove()                        // make a random move
+                if(!isWinner(boardData, 'O')){          // check for win
+                    changePlayer()                      // if no win change players
+                }      
+            }, 250);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [boardData])
@@ -51,7 +53,9 @@ export function ListProvider({ children }){
         if (!gameOver){                                 // if game is still going
             if(boardData[x][y] === ''){                 // check if spot on the board is empty
                 addMoveToBoard(x,y, currentPlayer)      // update board with new move
-                if(!isWinner())changePlayer()
+                if(!isWinner(boardData, 'X') && !isWinner(boardData, 'O')){
+                    changePlayer()
+                }
             }
         }
         else alert('reset board to play again')     // cannot make a move if game is over
@@ -63,14 +67,14 @@ export function ListProvider({ children }){
         setBoardData(temp)                      // set boardData to temp board
     }
    
-    let isWinner = () => {                      // FIND A BETTER WAY TO DO THIS (:
+    let isWinner = (board = boardData, player) => {                      // FIND A BETTER WAY TO DO THIS (:
         let n = WINNING_COMBOS.length               
         for(let i = 0; i < n; i++){                             // loop over winning combos
             let combo = WINNING_COMBOS[i]
-            let a = boardData[combo[0][0]][combo[0][1]]         // get 3 squares from combo
-            let b = boardData[combo[1][0]][combo[1][1]]
-            let c = boardData[combo[2][0]][combo[2][1]]
-            if(a !== '' && a === b && b === c) return true      // combo found
+            let a = board[combo[0][0]][combo[0][1]]         // get 3 squares from combo
+            let b = board[combo[1][0]][combo[1][1]]
+            let c = board[combo[2][0]][combo[2][1]]
+            if(a !== '' && a === b && b === c && a === player) return true      // combo found
         }
         return false        // no winning combos are found
     }
@@ -92,24 +96,16 @@ export function ListProvider({ children }){
 
     // PUT AI CODE HERE 
     let makeRandomMove = () => {
-        let availableMoves = []                             // get a list of open moves
-        for (let i = 0; i < 3; i++){
-            for (let j = 0; j < 3; j++){
-                if(boardData[i][j] === ''){
-                    availableMoves.push([i,j])              // add the empty coordinates to list
-                }
-            }
-        }
-        let n = availableMoves.length
-        let move = availableMoves[getRandomInt(n)]          // pick random index
-        addMoveToBoard(move[0],move[1], currentPlayer)      // move to random open square
+        let openMoves = getAvailableMoves(boardData)
+        let move = openMoves[getRandomInt(openMoves.length)]        // pick random index
+        addMoveToBoard(move[0],move[1], currentPlayer)              // move to random open square
     }
 
     let getRandomInt = (max) => {
         return Math.floor(Math.random() * max);
     }
 
-    let isBoardEmpty = () => {                      // check if board is clean
+    let isBoardEmpty = () => {                                      // check if board is clean
         for (let i = 0; i < 3; i++){
             for (let j = 0; j < 3; j++){
                 if(boardData[i][j] !== '') return false
@@ -117,6 +113,36 @@ export function ListProvider({ children }){
         }
         return true
     }
+
+    let getScore = (board) => {                     // score the outcome for minimax algorithm
+        if (isWinner(board, 'O')){
+            return 10
+        } else if (isWinner(board, 'X')) {
+            return -10
+        }
+        else return 0
+
+    }
+
+    let getAvailableMoves = (board) => {            // takes in a board object
+        let availableMoves = []                     // get a list of open moves
+        for (let i = 0; i < 3; i++){
+            for (let j = 0; j < 3; j++){
+                if(board[i][j] === ''){             // check if move is empty
+                    availableMoves.push([i,j])      // add the empty coordinates to list
+                }
+            }
+        }
+        return availableMoves
+    }
+
+    let getBoardWithMove = (board, move, value) => {
+        let [x,y] = [move[0], move[1]]
+        let temp = [...board]
+        temp[x][y] = value
+        return temp
+    }
+
     const context = {
         actions: {checkMove, cleanBoard},               // helper functions
         state: {boardData, setBoardData, message}       // state getters and setters
