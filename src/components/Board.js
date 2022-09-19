@@ -10,28 +10,23 @@ const Board = () => {
         </section>
     )
 }
-/*
-loadBoard() takes in the boardData state context and
-uses it to create a list of <Square/> components to render
-into the <Board /> component. If state in context changes,
-the game board should change as well and represent that
-*/
-let loadBoard = (boardData) => {
-    const squares = []      // list for <Square />'s
-    let squareIDs = [       // IDs used for stlying borders
+
+let loadBoard = (boardData) => {        // parameter is state passed from context
+    const squares = []                  // create a list for <Square />'s
+    let squareIDs = [                   // IDs used for stlying borders
         ['a', 'b', 'c'],
         ['d', 'e', 'f'],
         ['g', 'h', 'i']
     ]
     for (let i = 0; i < 3; i++){            // loop data to create <Square/>'s
         for (let j = 0; j < 3; j++){
-            let value = boardData[i][j]
-            let id = squareIDs[i][j]
+            let value = boardData[i][j]     // get current board data to render    
+            let id = squareIDs[i][j]        // ids for styling boarders
             squares.push(
                 <Square value={value} id={id} key={id} location={[i,j]}/>
             )
         }
     }
-    return squares
+    return squares      // returns a list of <Square /> componets
 }
 export default Board
