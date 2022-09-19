@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react'
 const BoardContext = React.createContext()
 export function ListProvider({ children }){
     const [message, setMessage] = useState('may luck be in your favor')
-    const [currentPlayer, setCurrentPlayer] = useState('O')
+    const [currentPlayer, setCurrentPlayer] = useState('X')
     const [gameOver, setGameOver] = useState(false)
     const [boardData, setBoardData] = useState(
         [
@@ -22,15 +22,22 @@ export function ListProvider({ children }){
         [ [0,0], [1,1], [2,2] ],    // tl diagnol to br
         [ [0,2], [1,1], [2,0] ]     // tr diagnol to bl
     ]
-
-
+    
+    // When board is updated, we check for winner
     useEffect(() => {
         if(isWinner()){
             setMessage(`${currentPlayer} is the winner`)
             setGameOver(true)
-            // setCurrentPlayer('X')
-        } 
-        else changePlayer()
+            setCurrentPlayer('X')
+        }
+        else if(currentPlayer === 'O'){
+            setTimeout(() => {
+                aiPlaysMove();
+              }, 1000)
+              changePlayer()
+            
+        }
+        // else changePlayer()
     }, [boardData])
 
 
@@ -58,6 +65,7 @@ export function ListProvider({ children }){
         let temp = [...boardData]       // copy current board
         temp[x][y] = currentPlayer      // mark square
         setBoardData(temp)
+        changePlayer()
     }
 
 
@@ -87,10 +95,14 @@ export function ListProvider({ children }){
             ]
         )
         setGameOver(false)
-        setCurrentPlayer('X')
+        setCurrentPlayer('O')
         setMessage('may luck be in your favor')
     }
 
+    let aiPlaysMove = () => {
+        checkMove([0,0])
+        return
+    }
 
     const context = {
         actions: {checkMove, cleanBoard},
