@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react'
 const BoardContext = React.createContext()          // context to be imported in components
 export function ListProvider({ children }){
     const [message, setMessage] = useState('may luck be in your favor')     // end game message
-    const [currentPlayer, setCurrentPlayer] = useState('O')                 // current player
+    const [currentPlayer, setCurrentPlayer] = useState('')                  // current player
     const [gameOver, setGameOver] = useState(false)                         // active game
     const [boardData, setBoardData] = useState(                             // game board
         [ ['', '', ''], ['', '', ''], ['', '', ''] ])       // initialized as empty at launch
@@ -18,8 +18,11 @@ export function ListProvider({ children }){
         [ [0,2], [1,1], [2,0] ]     // tr diagnol to bl
     ]
     
-    useEffect(() => {               // this runs whenever boardData is changed
-        if(isWinner()){                             // check if there is a winner 
+    useEffect(() => {                               // this runs whenever boardData is changed
+        if(isBoardEmpty()){                         // start game as X when board is clear
+            setCurrentPlayer('X')
+        }
+        else if(isWinner()){                        // check if there is a winner 
             setMessage(`${currentPlayer} wins`)     // set winning message
             setGameOver(true)                       // game over is true
             setCurrentPlayer('X')                   // player reset to X for new game
@@ -29,7 +32,12 @@ export function ListProvider({ children }){
             setGameOver(true)           // game over is true
             setCurrentPlayer('X')       // player reset to X for new game
         }
-        else changePlayer()             // if no winner, change player
+        else if(currentPlayer === 'O'){             // @ on AI turn
+            setTimeout(() => {                      // wait .5 seconds before playing
+                makeRandomMove()                    // make a random move
+                if(!isWinner()) changePlayer()      // check for win, if not change players
+            }, 500);
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [boardData])
 
@@ -43,6 +51,7 @@ export function ListProvider({ children }){
         if (!gameOver){                                 // if game is still going
             if(boardData[x][y] === ''){                 // check if spot on the board is empty
                 addMoveToBoard(x,y, currentPlayer)      // update board with new move
+                if(!isWinner())changePlayer()
             }
         }
         else alert('reset board to play again')     // cannot make a move if game is over
@@ -78,10 +87,36 @@ export function ListProvider({ children }){
     let cleanBoard = () => {        // reset all state to beginning of game
         setBoardData( [ ['', '', ''], ['', '', ''], ['', '', ''] ] )
         setGameOver(false)
-        setCurrentPlayer('O')
         setMessage('may luck be in your favor')
     }
 
+    // PUT AI CODE HERE 
+    let makeRandomMove = () => {
+        let availableMoves = []                             // get a list of open moves
+        for (let i = 0; i < 3; i++){
+            for (let j = 0; j < 3; j++){
+                if(boardData[i][j] === ''){
+                    availableMoves.push([i,j])              // add the empty coordinates to list
+                }
+            }
+        }
+        let n = availableMoves.length
+        let move = availableMoves[getRandomInt(n)]          // pick random index
+        addMoveToBoard(move[0],move[1], currentPlayer)      // move to random open square
+    }
+
+    let getRandomInt = (max) => {
+        return Math.floor(Math.random() * max);
+    }
+
+    let isBoardEmpty = () => {                      // check if board is clean
+        for (let i = 0; i < 3; i++){
+            for (let j = 0; j < 3; j++){
+                if(boardData[i][j] !== '') return false
+            }
+        }
+        return true
+    }
     const context = {
         actions: {checkMove, cleanBoard},               // helper functions
         state: {boardData, setBoardData, message}       // state getters and setters

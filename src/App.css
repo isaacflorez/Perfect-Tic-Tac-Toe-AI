@@ -7,6 +7,6 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  border: .5rem solid brown;
+  border: 1rem solid brown;
   min-height: 100vh;
 }
