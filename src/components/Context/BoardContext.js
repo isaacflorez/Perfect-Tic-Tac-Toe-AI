@@ -5,6 +5,7 @@ export function ListProvider({ children }){
     const [message, setMessage] = useState('may luck be in your favor')     // end game message
     const [currentPlayer, setCurrentPlayer] = useState('')                  // current player
     const [gameOver, setGameOver] = useState(false)                         // active game
+    const [aiChoice, setAiChoice] = useState([])
     const [boardData, setBoardData] = useState(                             // game board
         [ ['', '', ''], ['', '', ''], ['', '', ''] ])       // initialized as empty at launch
     const WINNING_COMBOS = [        // all possible winning moves as coordinates
@@ -67,9 +68,9 @@ export function ListProvider({ children }){
         setBoardData(temp)                      // set boardData to temp board
     }
    
-    let isWinner = (board = boardData, player) => {                      // FIND A BETTER WAY TO DO THIS (:
+    let isWinner = (board = boardData, player) => {         // FIND A BETTER WAY TO DO THIS (:
         let n = WINNING_COMBOS.length               
-        for(let i = 0; i < n; i++){                             // loop over winning combos
+        for(let i = 0; i < n; i++){                         // loop over winning combos
             let combo = WINNING_COMBOS[i]
             let a = board[combo[0][0]][combo[0][1]]         // get 3 squares from combo
             let b = board[combo[1][0]][combo[1][1]]
@@ -80,7 +81,7 @@ export function ListProvider({ children }){
     }
 
     let isTie = () => {
-        for (let i = 0; i < 3; i++){            // loop through board data
+        for (let i = 0; i < 3; i++){                     // loop through board data
             for (let j = 0; j < 3; j++){
                 if(boardData[i][j] === '') return false  // empty square found
             }
@@ -143,6 +144,49 @@ export function ListProvider({ children }){
         return temp
     }
 
+    // MINIMAX ALGORITHM FOR BEST AI PLAYER
+    let minimax = (board, player) => {
+        // change player every call
+        player === 'X' ? player = 'O' : player = 'X'
+
+        // if game over, return the score as base case in recursion
+        if(isWinner(board, 'X') || isWinner(board, 'O')){
+            return getScore(board)
+        }
+
+        // set arrays to hold  moves and scores
+        let scores = []
+        let moves = []
+
+        // recursion on possible moves and holding scores / moves
+        let possibleMoves = getAvailableMoves(board)
+        possibleMoves.forEach( (move) => {
+            let possbileBoard = getBoardWithMove(board,move, player)       // first round of possible boards will be O, but second round is X
+            scores.push(minimax(possbileBoard, player))                         // scores from minimax determine the best move available
+            moves.push(move)                                            // moves added into array to coorespond with scores index
+        })
+
+        // calculate max move or min move depending on player
+        if(player === 'O'){
+            let maxIndex = getMaxIndex(scores)
+            aiChoice = moves[maxIndex]
+            return scores[maxIndex]
+        }
+        else {
+            let minIndex = getMinIndex(scores)
+            aiChoice = moves[minIndex]
+            return scores[minIndex]
+        }
+    }
+
+    let getMaxIndex = (array) => {
+        return 0
+    }
+    
+    let getMinIndex = (array) => {
+        return 0
+    }
+    
     const context = {
         actions: {checkMove, cleanBoard},               // helper functions
         state: {boardData, setBoardData, message}       // state getters and setters
