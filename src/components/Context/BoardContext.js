@@ -41,6 +41,17 @@ export function ListProvider({ children }){
                 }      
             }, 250);
         }
+        // else if(currentPlayer === 'O'){
+        //     setTimeout(() => {
+        //         let score = minimax(boardData, 'X')
+        //         console.log(score)
+        //         addMoveToBoard(aiChoice[0], aiChoice[1], 'O')
+        //         console.log(currentPlayer, boardData)
+        //         if(!isWinner(boardData, 'O')){
+        //             changePlayer()
+        //         }
+        //     }, 500)
+        // }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [boardData])
 
@@ -150,6 +161,7 @@ export function ListProvider({ children }){
         player === 'X' ? player = 'O' : player = 'X'
 
         // if game over, return the score as base case in recursion
+        // no AI choice is set because game is over
         if(isWinner(board, 'X') || isWinner(board, 'O')){
             return getScore(board)
         }
@@ -160,6 +172,9 @@ export function ListProvider({ children }){
 
         // recursion on possible moves and holding scores / moves
         let possibleMoves = getAvailableMoves(board)
+        // for each move we get a copy of the board if we make that move then get the minimax score
+        // of that possible board. This will return +10 or -10 depending on player. we also save the 
+        // move for that specific score in the move aray
         possibleMoves.forEach( (move) => {
             let possbileBoard = getBoardWithMove(board,move, player)       // first round of possible boards will be O, but second round is X
             scores.push(minimax(possbileBoard, player))                         // scores from minimax determine the best move available
@@ -169,22 +184,38 @@ export function ListProvider({ children }){
         // calculate max move or min move depending on player
         if(player === 'O'){
             let maxIndex = getMaxIndex(scores)
-            aiChoice = moves[maxIndex]
+            setAiChoice(moves[maxIndex])
             return scores[maxIndex]
         }
         else {
             let minIndex = getMinIndex(scores)
-            aiChoice = moves[minIndex]
+            setAiChoice(moves[minIndex])
             return scores[minIndex]
         }
     }
 
     let getMaxIndex = (array) => {
-        return 0
+        let max = 0
+        let index = 0
+        for(let i = 0; i < array.length; i++){
+            if(array[i] > max){
+                index = i
+                max = array[i]
+            }
+        }
+        return index
     }
     
     let getMinIndex = (array) => {
-        return 0
+        let min = 100
+        let index = 0
+        for(let i = 0; i < array.length; i++){
+            if(array[i] < min){
+                index = i
+                min = array[i]
+            }
+        }
+        return index
     }
     
     const context = {
