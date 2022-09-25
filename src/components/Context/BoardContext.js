@@ -33,91 +33,97 @@ export function ListProvider({ children }){
             setGameOver(true)           // game over is true
             setCurrentPlayer('X')       // player reset to X for new game
         }
-        else if(currentPlayer === 'O'){                 // @ on AI turn
-            setTimeout(() => {                          // wait .25 seconds before playing
-                makeRandomMove()                        // make a random move
-                if(!isWinner(boardData, 'O')){          // check for win
-                    changePlayer()                      // if no win change players
-                }      
-            }, 250);
-        }
-        // else if(currentPlayer === 'O'){
-        //     setTimeout(() => {
-        //         let score = minimax(boardData, 'X')
-        //         console.log(score)
-        //         addMoveToBoard(aiChoice[0], aiChoice[1], 'O')
-        //         console.log(currentPlayer, boardData)
-        //         if(!isWinner(boardData, 'O')){
-        //             changePlayer()
-        //         }
-        //     }, 500)
+        // else if(currentPlayer === 'O'){                 // @ on AI turn
+        //     setTimeout(() => {                          // wait .25 seconds before playing
+        //         makeRandomMove()                        // make a random move
+        //         if(!isWinner(boardData, 'O')){          // check for win
+        //             changePlayer()                      // if no win change players
+        //         }      
+        //     }, 250);
         // }
+        else if(currentPlayer === 'O'){
+            setTimeout(() => {
+                let score = minimax(boardData, 'X')
+                console.log(score)
+                addMoveToBoard(aiChoice[0], aiChoice[1], 'O')
+                console.log(currentPlayer, boardData)
+                if(!isWinner(boardData, 'O')){
+                    changePlayer()
+                }
+            }, 500)
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [boardData])
 
     let changePlayer = () => {      
-        currentPlayer === 'X'           // if curr player is X
-        ? setCurrentPlayer('O')         // change to O
-        : setCurrentPlayer('X')         // other wise change to O
+        currentPlayer === 'X'
+        ? setCurrentPlayer('O')
+        : setCurrentPlayer('X')
     }
 
-    let checkMove = (x,y) => {                          // see if move is valid or not
-        if (!gameOver){                                 // if game is still going
-            if(boardData[x][y] === ''){                 // check if spot on the board is empty
-                addMoveToBoard(x,y, currentPlayer)      // update board with new move
+    // the OnClick for every square if move is open it is played
+    let checkMove = (x,y) => {
+        if (!gameOver){
+            if(boardData[x][y] === ''){
+                addMoveToBoard(x,y, currentPlayer)
                 if(!isWinner(boardData, 'X') && !isWinner(boardData, 'O')){
                     changePlayer()
                 }
             }
         }
-        else alert('reset board to play again')     // cannot make a move if game is over
+        else alert('reset board to play again')
     }
 
-    let addMoveToBoard = (x,y, value) => {      // update board at coordinated with value
-        let temp = [...boardData]               // copy current board
-        temp[x][y] =  value                     // mark square in temp board
-        setBoardData(temp)                      // set boardData to temp board
+    // called only if valid move is clicked by user
+    let addMoveToBoard = (x,y, value) => {
+        let temp = [...boardData]
+        temp[x][y] =  value
+        setBoardData(temp)
     }
    
-    let isWinner = (board = boardData, player) => {         // FIND A BETTER WAY TO DO THIS (:
+    // compare board with winning combos
+    let isWinner = (board = boardData, player) => {
         let n = WINNING_COMBOS.length               
-        for(let i = 0; i < n; i++){                         // loop over winning combos
+        for(let i = 0; i < n; i++){
             let combo = WINNING_COMBOS[i]
-            let a = board[combo[0][0]][combo[0][1]]         // get 3 squares from combo
+            let a = board[combo[0][0]][combo[0][1]]
             let b = board[combo[1][0]][combo[1][1]]
             let c = board[combo[2][0]][combo[2][1]]
-            if(a !== '' && a === b && b === c && a === player) return true      // combo found
+            if(a !== '' && a === b && b === c && a === player) return true
         }
         return false        // no winning combos are found
     }
 
+    // ties only happen if no moves left
     let isTie = () => {
-        for (let i = 0; i < 3; i++){                     // loop through board data
+        for (let i = 0; i < 3; i++){
             for (let j = 0; j < 3; j++){
-                if(boardData[i][j] === '') return false  // empty square found
+                if(boardData[i][j] === '') return false
             }
         }
-        return true         // no empties are found therefore game is tied
+        return true
     }
 
-    let cleanBoard = () => {        // reset all state to beginning of game
+    // reset state of the game
+    let cleanBoard = () => {
         setBoardData( [ ['', '', ''], ['', '', ''], ['', '', ''] ] )
         setGameOver(false)
         setMessage('may luck be in your favor')
     }
 
-    // PUT AI CODE HERE 
+    // random move AI player
     let makeRandomMove = () => {
         let openMoves = getAvailableMoves(boardData)
         let move = openMoves[getRandomInt(openMoves.length)]        // pick random index
         addMoveToBoard(move[0],move[1], currentPlayer)              // move to random open square
     }
 
+    // helper function for random AI player
     let getRandomInt = (max) => {
         return Math.floor(Math.random() * max);
     }
 
-    let isBoardEmpty = () => {                                      // check if board is clean
+    let isBoardEmpty = () => {
         for (let i = 0; i < 3; i++){
             for (let j = 0; j < 3; j++){
                 if(boardData[i][j] !== '') return false
@@ -126,7 +132,8 @@ export function ListProvider({ children }){
         return true
     }
 
-    let getScore = (board) => {                     // score the outcome for minimax algorithm
+    // determine a score for the board
+    let getScore = (board) => {
         if (isWinner(board, 'O')){
             return 10
         } else if (isWinner(board, 'X')) {
@@ -136,18 +143,19 @@ export function ListProvider({ children }){
 
     }
 
-    let getAvailableMoves = (board) => {            // takes in a board object
-        let availableMoves = []                     // get a list of open moves
+    let getAvailableMoves = (board) => {
+        let availableMoves = []
         for (let i = 0; i < 3; i++){
             for (let j = 0; j < 3; j++){
-                if(board[i][j] === ''){             // check if move is empty
-                    availableMoves.push([i,j])      // add the empty coordinates to list
+                if(board[i][j] === ''){
+                    availableMoves.push([i,j])
                 }
             }
         }
         return availableMoves
     }
 
+    // return a possible board with given move
     let getBoardWithMove = (board, move, value) => {
         let [x,y] = [move[0], move[1]]
         let temp = [...board]
@@ -172,6 +180,7 @@ export function ListProvider({ children }){
 
         // recursion on possible moves and holding scores / moves
         let possibleMoves = getAvailableMoves(board)
+        console.log('POSSIBLE MOVES', possibleMoves)
         // for each move we get a copy of the board if we make that move then get the minimax score
         // of that possible board. This will return +10 or -10 depending on player. we also save the 
         // move for that specific score in the move aray
@@ -181,15 +190,23 @@ export function ListProvider({ children }){
             moves.push(move)                                            // moves added into array to coorespond with scores index
         })
 
+        console.log('MOVES: ', moves)
+        console.log('SCORES: ', scores)
+
         // calculate max move or min move depending on player
         if(player === 'O'){
             let maxIndex = getMaxIndex(scores)
-            setAiChoice(moves[maxIndex])
+            let bestMove = moves[maxIndex]
+            setAiChoice(bestMove)
+            console.log(aiChoice)
+            console.log(moves[maxIndex])
             return scores[maxIndex]
         }
         else {
             let minIndex = getMinIndex(scores)
             setAiChoice(moves[minIndex])
+            // console.log(aiChoice)
+            console.log(moves[minIndex])
             return scores[minIndex]
         }
     }
