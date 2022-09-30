@@ -42,19 +42,18 @@ export function ListProvider({ children }){
         //         }      
         //     }, 250);
         // }
+
+        // AI needs to make a move THEN change player
         else if(currentPlayer === 'O'){
             console.log('AIs MOVE')
-            let score = minimax(boardData, 'X')
-            console.log(score)
+            // let score = minimax(boardData, 'X')
+            // console.log(score)
+            console.log(aiChoice)
             addMoveToBoard(aiChoice[0], aiChoice[1], 'O')
-            
-            // let firstBoard = getBoardWithMove(boardData, [2,2], 'O')
-            // let secondBoard = getBoardWithMove(firstBoard, [1,1], 'O')
-            // let thirdBoard = getBoardWithMove(secondBoard, [0,0], 'O')
-            // addMoveToBoard(aiChoice[0], aiChoice[1], 'O')
-            // console.table(firstBoard)
-            // addMoveToBoard(2, 2, 'O')
-
+            const move = [2,2]
+            let possibleMoves = getAvailableMoves(boardData)
+            console.log(possibleMoves)
+            updateAiChoice(possibleMoves[0])        // for now the AI takes the first available move
             if(!isWinner(boardData, 'O')){
                 changePlayer()
             }
@@ -62,21 +61,33 @@ export function ListProvider({ children }){
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [boardData])
 
+    // ISSUE HERE -> ran this and my laptop went bonkers lmaooooo
+    // directly setting the state value caused an infinite loop somehow
+    // the original error was cannot set the value at [0]
+
+    // IT COULD BE PASSING IN A MOVE THAT DOESNT EXIST!!! as in when there are no moves left
+    // there is an empu array from possible moves funciton!! thus maybe thats why we get
+    // cannot access newMove[0] bc it is undefined because there are no more moves and it is
+    // an empty array
+
     let updateAiChoice = (move) => {
-        const newMove = aiChoice
+        const newMove = [0,0]
         newMove[0] = move[0]
         newMove[1] = move[1]
-        // console.log('new move -> ', newMove)
+
         setAiChoice(newMove)
+        // setAiChoice(move)
     }
 
-    let changePlayer = () => {      
+    let changePlayer = () => { 
         currentPlayer === 'X'
         ? setCurrentPlayer('O')
         : setCurrentPlayer('X')
+        
     }
 
     // the OnClick for every square if move is open it is played
+    // Only called when human makes play
     let checkMove = (x,y) => {
         if (!gameOver){
             if(boardData[x][y] === ''){
@@ -179,18 +190,34 @@ export function ListProvider({ children }){
     // everytime this is called with the next temp board the original board is being 
     // changed as well. I believe this is whats causing the entire board to fill up
 
+    // FIXED ????? does not appear to be any more issues with copying array
+
     let getBoardWithMove = (board, move, value) => {
         let [x,y] = [move[0], move[1]]
-        let temp = [...board]
+
+        // Trying a copy helper function to manually copy instead of this below
+        // const temp = [...board]
+
+        const temp = copyBoard(board)
         temp[x][y] = value
-        console.table(temp)
         return temp
+    }
+
+    // return a deep copy of a board that will not effect the original
+    let copyBoard = (board) => {
+        const copy = [ ['', '', ''], ['', '', ''], ['', '', ''] ]
+        for(let i = 0; i < 3; i++){
+            for(let j = 0; j < 3; j++){
+                copy[i][j] = board[i][j]
+            }
+        }
+        return copy
     }
 
     // MINIMAX ALGORITHM FOR BEST AI PLAYER
     let minimax = (board, player) => {
         console.log('INSIDE MINIMAX')
-        // change player every call
+        // change player every call. AI wants to maximize and human wants to minimize
         player === 'X' ? player = 'O' : player = 'X'
 
         // if game over, return the score as base case in recursion
@@ -222,10 +249,12 @@ export function ListProvider({ children }){
         // console.log('SCORES: ', scores)
 
         // calculate max move or min move depending on player
+        // the best score is returned so that the algorithm can
+        // pick the best move at that point in the game
         if(player === 'O'){
             let maxIndex = getMaxIndex(scores)
             let bestMove = moves[maxIndex]
-            updateAiChoice(bestMove)
+            updateAiChoice(bestMove)                // set the AI move to the best move
 
             // console.log(aiChoice)
             // console.log(moves[maxIndex])
@@ -235,7 +264,7 @@ export function ListProvider({ children }){
         else {
             let minIndex = getMinIndex(scores)
             let bestMove = moves[minIndex]
-            updateAiChoice(bestMove)
+            updateAiChoice(bestMove)                // set the AI move to the best move
 
             // console.log(aiChoice)
             // console.log(moves[minIndex])
