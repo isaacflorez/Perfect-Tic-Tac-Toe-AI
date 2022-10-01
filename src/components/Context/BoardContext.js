@@ -34,6 +34,8 @@ export function ListProvider({ children }){
             setGameOver(true)           // game over is true
             setCurrentPlayer('X')       // player reset to X for new game
         }
+
+
         // else if(currentPlayer === 'O'){                 // @ on AI turn
         //     setTimeout(() => {                          // wait .25 seconds before playing
         //         makeRandomMove()                        // make a random move
@@ -43,16 +45,21 @@ export function ListProvider({ children }){
         //     }, 250);
         // }
 
+
         // AI needs to make a move THEN change player
+        // - call minimax on board
+        //      - this function should also update the aiChoice
+        // - add the ai move to the board
+        // - change playerif game is not over
         else if(currentPlayer === 'O'){
-            console.log('AIs MOVE')
-            // let score = minimax(boardData, 'X')
-            // console.log(score)
-            console.log(aiChoice)
+            console.log('ai making move')
+            let score = minimax(boardData, 'X')
+            console.log(score)
+            console.log("ai choice ->", aiChoice)
             addMoveToBoard(aiChoice[0], aiChoice[1], 'O')
-            let possibleMoves = getAvailableMoves(boardData)
-            console.log(possibleMoves)
-            updateAiChoice(possibleMoves[0])        // for now the AI takes the first available move
+            // let possibleMoves = getAvailableMoves(boardData)
+            // console.log(possibleMoves)
+            // updateAiChoice(possibleMoves[0])        // for now the AI takes the first available move
             if(!isWinner(boardData, 'O')){
                 changePlayer()
             }
@@ -101,7 +108,7 @@ export function ListProvider({ children }){
 
     // called only if valid move is clicked by user
     let addMoveToBoard = (x,y, value) => {
-        console.log('ADDING MOVE -> ', x,y)
+        console.log(currentPlayer, 'adding move -> ', x,y)
         let temp = [...boardData]
         temp[x][y] =  value
         setBoardData(temp)
@@ -206,7 +213,7 @@ export function ListProvider({ children }){
 
     // MINIMAX ALGORITHM FOR BEST AI PLAYER --> recursive
     let minimax = (board, player) => {
-        console.log('INSIDE MINIMAX')
+        // console.log('INSIDE MINIMAX')
         // change player every call. AI wants to maximize and human wants to minimize
         player === 'X' ? player = 'O' : player = 'X'
 
@@ -227,7 +234,7 @@ export function ListProvider({ children }){
         // of that possible board. This will return +10 or -10 depending on player. we also save the 
         // move for that specific score in the move aray
         possibleMoves.forEach( (move) => {
-            console.log(move)
+            // console.log(move)
             let possbileBoard = getBoardWithMove(board,move, player)       // first round of possible boards will be O, but second round is X
             scores.push(minimax(possbileBoard, player))                         // scores from minimax determine the best move available
             moves.push(move)                                            // moves added into array to coorespond with scores index
