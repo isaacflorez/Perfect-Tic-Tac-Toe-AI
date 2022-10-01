@@ -50,7 +50,6 @@ export function ListProvider({ children }){
             // console.log(score)
             console.log(aiChoice)
             addMoveToBoard(aiChoice[0], aiChoice[1], 'O')
-            const move = [2,2]
             let possibleMoves = getAvailableMoves(boardData)
             console.log(possibleMoves)
             updateAiChoice(possibleMoves[0])        // for now the AI takes the first available move
@@ -167,7 +166,6 @@ export function ListProvider({ children }){
             return -10
         }
         else return 0
-
     }
 
     let getAvailableMoves = (board) => {
@@ -182,22 +180,14 @@ export function ListProvider({ children }){
         return availableMoves
     }
 
-    // return a possible board with given move
-
     // ISSUES *********** the board being passed is updating when called again
     // temp values are not really temporary
     // for some reason when the board is being passed in, a temp board is returned but
     // everytime this is called with the next temp board the original board is being 
     // changed as well. I believe this is whats causing the entire board to fill up
-
-    // FIXED ????? does not appear to be any more issues with copying array
-
+    // FIXED ????? does not appear to be any more issues with copying array due to
     let getBoardWithMove = (board, move, value) => {
         let [x,y] = [move[0], move[1]]
-
-        // Trying a copy helper function to manually copy instead of this below
-        // const temp = [...board]
-
         const temp = copyBoard(board)
         temp[x][y] = value
         return temp
@@ -214,14 +204,13 @@ export function ListProvider({ children }){
         return copy
     }
 
-    // MINIMAX ALGORITHM FOR BEST AI PLAYER
+    // MINIMAX ALGORITHM FOR BEST AI PLAYER --> recursive
     let minimax = (board, player) => {
         console.log('INSIDE MINIMAX')
         // change player every call. AI wants to maximize and human wants to minimize
         player === 'X' ? player = 'O' : player = 'X'
 
         // if game over, return the score as base case in recursion
-        // no AI choice is set because game is over
         if(isWinner(board, 'X') || isWinner(board, 'O')){
             return getScore(board)
         }
@@ -230,7 +219,6 @@ export function ListProvider({ children }){
         let scores = []
         let moves = []
 
-        // recursion on possible moves and holding scores / moves
         let possibleMoves = getAvailableMoves(board)
 
         // console.log('POSSIBLE MOVES', possibleMoves)
@@ -245,30 +233,29 @@ export function ListProvider({ children }){
             moves.push(move)                                            // moves added into array to coorespond with scores index
         })
 
-        // console.log('MOVES: ', moves)
-        // console.log('SCORES: ', scores)
-
         // calculate max move or min move depending on player
         // the best score is returned so that the algorithm can
         // pick the best move at that point in the game
         if(player === 'O'){
             let maxIndex = getMaxIndex(scores)
+
+            // new code from 9/30 to check for null move list
+            if(moves.length === 0){
+                return 0
+            }
+
             let bestMove = moves[maxIndex]
             updateAiChoice(bestMove)                // set the AI move to the best move
-
-            // console.log(aiChoice)
-            // console.log(moves[maxIndex])
-            
             return scores[maxIndex]
         }
         else {
             let minIndex = getMinIndex(scores)
-            let bestMove = moves[minIndex]
-            updateAiChoice(bestMove)                // set the AI move to the best move
+            if(moves.length === 0){
+                return 0
+            }
 
-            // console.log(aiChoice)
-            // console.log(moves[minIndex])
-            
+            let bestMove = moves[minIndex]
+            updateAiChoice(bestMove)                // set the AI move to the best move            
             return scores[minIndex]
         }
     }
