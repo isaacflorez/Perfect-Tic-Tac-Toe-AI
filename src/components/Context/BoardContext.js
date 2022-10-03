@@ -29,24 +29,25 @@ export function ListProvider({ children }){
             setGameOver(true)                       // game over is true
             setCurrentPlayer('X')                   // player reset to X for new game
         }
-        else if(isTie()){
+        else if(isTie(boardData)){
             setMessage(`tied`)          // set winning message
             setGameOver(true)           // game over is true
             setCurrentPlayer('X')       // player reset to X for new game
         }
 
 
-        else if(currentPlayer === 'O'){                 // @ on AI turn
-            getAvailableMoves(boardData).forEach( (move) => {
-                console.log(move)
-            })
-            setTimeout(() => {                          // wait .25 seconds before playing
-                makeRandomMove()                        // make a random move
-                if(!isWinner(boardData, 'O')){          // check for win
-                    changePlayer()                      // if no win change players
-                }      
-            }, 250);
-        }
+        // else if(currentPlayer === 'O'){                 // @ on AI turn
+        //     console.log("OPEN MOVES")
+        //     getAvailableMoves(boardData).forEach( (move) => {
+        //         console.log(move)
+        //     })
+        //     setTimeout(() => {                          // wait .25 seconds before playing
+        //         makeRandomMove()                        // make a random move
+        //         if(!isWinner(boardData, 'O')){          // check for win
+        //             changePlayer()                      // if no win change players
+        //         }      
+        //     }, 250);
+        // }
 
 
         // AI needs to make a move THEN change player
@@ -54,19 +55,16 @@ export function ListProvider({ children }){
         //      - this function should also update the aiChoice
         // - add the ai move to the board
         // - change playerif game is not over
-        // else if(currentPlayer === 'O'){
-        //     console.log('ai making move')
-        //     let score = minimax(boardData, 'X')
-        //     console.log(score)
-        //     console.log("ai choice ->", aiChoice)
-        //     addMoveToBoard(aiChoice[0], aiChoice[1], 'O')
-        //     // let possibleMoves = getAvailableMoves(boardData)
-        //     // console.log(possibleMoves)
-        //     // updateAiChoice(possibleMoves[0])        // for now the AI takes the first available move
-        //     if(!isWinner(boardData, 'O')){
-        //         changePlayer()
-        //     }
-        // }
+        else if(currentPlayer === 'O'){
+            console.log('ai making move')
+            let bestMove = minimax(boardData, 'X')
+            console.log(bestMove)
+            updateAiChoice(bestMove.move)
+            addMoveToBoard(aiChoice[0], aiChoice[1], 'O')
+            if(!isWinner(boardData, 'O')){
+                changePlayer()
+            }
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [boardData])
 
@@ -131,10 +129,10 @@ export function ListProvider({ children }){
     }
 
     // ties only happen if no moves left
-    let isTie = () => {
+    let isTie = (board) => {
         for (let i = 0; i < 3; i++){
             for (let j = 0; j < 3; j++){
-                if(boardData[i][j] === '') return false
+                if(board[i][j] === '') return false
             }
         }
         return true
@@ -224,36 +222,18 @@ export function ListProvider({ children }){
     // bestMove = {'move': [0,0], 'score': 10}
     // return bestMove
     let minimax = (board, player) => {
-        // console.log('INSIDE MINIMAX')
-        // change player every call. AI wants to maximize and human wants to minimize
-        player === 'X' ? player = 'O' : player = 'X'
+        player === 'X' ? player = 'O' : player = 'X'    // change player every call
 
         // if game over, return the score as base case in recursion
         // if(isWinner(board, 'X') || isWinner(board, 'O')){
         //     return getScore(board)
         // }
 
-        // check for winner
-        if(isWinner(board, 'X')){
-            return {move: null, score: 10}
-        } else if (isWinner(board, 'O')){
-            return {move: null, score:-10}
-        }
-
-        // return values based on max and min players
-        if(player === 'X'){
-            let bestMove = {move: null, score: -Infinity}       // -inf to maximize
-        } else {
-            let bestMove = {move: null, score: Infinity}        // +inf to minimize
-        }
-
-        // ### i might be able to update the max during forEach
         // set arrays to hold  moves and scores
         // let scores = []
         // let moves = []
 
         // let possibleMoves = getAvailableMoves(board)
-
         // console.log('POSSIBLE MOVES', possibleMoves)
         
         // for each move we get a copy of the board if we make that move then get the minimax score
@@ -265,6 +245,60 @@ export function ListProvider({ children }){
         //     scores.push(minimax(possbileBoard, player))                         // scores from minimax determine the best move available
         //     moves.push(move)                                            // moves added into array to coorespond with scores index
         // })
+
+        // calculate max move or min move depending on player
+        // the best score is returned so that the algorithm can
+        // pick the best move at that point in the game
+        // if(player === 'O'){
+        //     let maxIndex = getMaxIndex(scores)
+        //     // new code from 9/30 to check for null move list
+        //     if(moves.length === 0){
+        //         return 0
+        //     }
+        //     let bestMove = moves[maxIndex]
+        //     updateAiChoice(bestMove)                // set the AI move to the best move
+        //     return scores[maxIndex]
+        // }
+        // else {
+        //     let minIndex = getMinIndex(scores)
+        //     if(moves.length === 0){
+        //         return 0
+        //     }
+        //     let bestMove = moves[minIndex]
+        //     updateAiChoice(bestMove)                // set the AI move to the best move            
+        //     return scores[minIndex]
+        // }
+
+        if(isWinner(board, 'X')){                       // base case = winner
+            return { move: null, score: 10 }            // +10 if X wins
+        } else if (isWinner(board, 'O')){       
+            return { move: null, score: -10 }            // -10 if O wins
+        } else if (isTie(board)){
+            return { move: null, score: 0 }             // 0 if a tie=
+        }
+
+        // return values based on max and min players
+        let bestMove = {move: null, score: 0}
+        player === 'X' 
+            ? bestMove.score = -Infinity 
+            : bestMove.score = Infinity
+
+        // get scores for available moves
+        getAvailableMoves(board).forEach((move) => {
+            let simBoard = getBoardWithMove(board, move, player)    // simulate a board with move made
+            let simScore = minimax(simBoard, player)                // get score for this simulated board
+            if (player === 'X'){                                    // X's turn pick maximum score
+                if (simScore.score > bestMove.score){
+                    bestMove = simScore
+                }
+            } else if (player === 'O') {                                                // O's turn pick minimum score
+                if (simScore.score < bestMove.score){
+                    bestMove = simScore
+                }
+            }
+        })
+        return bestMove
+
 
         /*
         let bestMove = {move: None, score: infinity}
@@ -281,33 +315,6 @@ export function ListProvider({ children }){
         })
         return best
         */
-
-
-        // calculate max move or min move depending on player
-        // the best score is returned so that the algorithm can
-        // pick the best move at that point in the game
-        if(player === 'O'){
-            let maxIndex = getMaxIndex(scores)
-
-            // new code from 9/30 to check for null move list
-            if(moves.length === 0){
-                return 0
-            }
-
-            let bestMove = moves[maxIndex]
-            updateAiChoice(bestMove)                // set the AI move to the best move
-            return scores[maxIndex]
-        }
-        else {
-            let minIndex = getMinIndex(scores)
-            if(moves.length === 0){
-                return 0
-            }
-
-            let bestMove = moves[minIndex]
-            updateAiChoice(bestMove)                // set the AI move to the best move            
-            return scores[minIndex]
-        }
     }
 
     let getMaxIndex = (array) => {
