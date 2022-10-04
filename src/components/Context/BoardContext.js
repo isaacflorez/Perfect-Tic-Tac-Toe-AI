@@ -5,7 +5,7 @@ export function ListProvider({ children }){
     const [message, setMessage] = useState('may luck be in your favor')     // end game message
     const [currentPlayer, setCurrentPlayer] = useState('')                  // current player
     const [gameOver, setGameOver] = useState(false)                         // active game
-    const [aiChoice, setAiChoice] = useState([0,0])
+    // const [aiChoice, setAiChoice] = useState([0,0])
     const [boardData, setBoardData] = useState(                             // game board
         [ ['', '', ''], ['', '', ''], ['', '', ''] ])       // initialized as empty at launch
     const WINNING_COMBOS = [        // all possible winning moves as coordinates
@@ -21,6 +21,7 @@ export function ListProvider({ children }){
     
     useEffect(() => {                               // this runs whenever boardData is changed
         console.log('INSIDE USE EFFECT')
+        // setAiChoice([2,2])
         if(isBoardEmpty()){                         // start game as X when board is clear
             setCurrentPlayer('X')
         }
@@ -34,7 +35,15 @@ export function ListProvider({ children }){
             setGameOver(true)           // game over is true
             setCurrentPlayer('X')       // player reset to X for new game
         }
-
+        else if(currentPlayer === 'O'){
+            setTimeout(() => {
+                let bestMove = minimax(boardData, 'X')                          // get minimax move
+                addMoveToBoard(bestMove.move[0], bestMove.move[1], 'O')         // add move
+                if(!isWinner(boardData, 'O')){                                  // change player if no win
+                    changePlayer()
+                }
+            }, 250)
+        }
 
         // else if(currentPlayer === 'O'){                 // @ on AI turn
         //     console.log("OPEN MOVES")
@@ -48,43 +57,8 @@ export function ListProvider({ children }){
         //         }      
         //     }, 250);
         // }
-
-
-        // AI needs to make a move THEN change player
-        // - call minimax on board
-        //      - this function should also update the aiChoice
-        // - add the ai move to the board
-        // - change playerif game is not over
-        else if(currentPlayer === 'O'){
-            console.log('ai making move')
-            let bestMove = minimax(boardData, 'X')
-            console.log(bestMove)
-            updateAiChoice(bestMove.move)
-            addMoveToBoard(aiChoice[0], aiChoice[1], 'O')
-            if(!isWinner(boardData, 'O')){
-                changePlayer()
-            }
-        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [boardData])
-
-    // ISSUE HERE -> ran this and my laptop went bonkers lmaooooo
-    // directly setting the state value caused an infinite loop somehow
-    // the original error was cannot set the value at [0]
-
-    // IT COULD BE PASSING IN A MOVE THAT DOESNT EXIST!!! as in when there are no moves left
-    // there is an empu array from possible moves funciton!! thus maybe thats why we get
-    // cannot access newMove[0] bc it is undefined because there are no more moves and it is
-    // an empty array
-
-    let updateAiChoice = (move) => {
-        const newMove = [0,0]
-        newMove[0] = move[0]
-        newMove[1] = move[1]
-
-        setAiChoice(newMove)
-        // setAiChoice(move)
-    }
 
     let changePlayer = () => { 
         currentPlayer === 'X'
@@ -166,16 +140,6 @@ export function ListProvider({ children }){
         return true
     }
 
-    // determine a score for the board
-    let getScore = (board) => {
-        if (isWinner(board, 'O')){
-            return 10
-        } else if (isWinner(board, 'X')) {
-            return -10
-        }
-        else return 0
-    }
-
     let getAvailableMoves = (board) => {
         let availableMoves = []
         for (let i = 0; i < 3; i++){
@@ -188,12 +152,6 @@ export function ListProvider({ children }){
         return availableMoves
     }
 
-    // ISSUES *********** the board being passed is updating when called again
-    // temp values are not really temporary
-    // for some reason when the board is being passed in, a temp board is returned but
-    // everytime this is called with the next temp board the original board is being 
-    // changed as well. I believe this is whats causing the entire board to fill up
-    // FIXED ????? does not appear to be any more issues with copying array due to helper
     let getBoardWithMove = (board, move, value) => {
         let [x,y] = [move[0], move[1]]
         const temp = copyBoard(board)
@@ -213,75 +171,25 @@ export function ListProvider({ children }){
     }
 
     // MINIMAX ALGORITHM FOR BEST AI PLAYER --> recursive
-
-
-    // new idea ! 10/01 -> this function can return an object containing the score and the move
-    // then we do not have to manually update aiChoice state during recursion. we will
-    // update the aiChoice state after original function call \_('.')_/
-    // ex:
-    // bestMove = {'move': [0,0], 'score': 10}
-    // return bestMove
     let minimax = (board, player) => {
-        player === 'X' ? player = 'O' : player = 'X'    // change player every call
+        if (player === 'X'){ player = 'O' }
+        else { player = 'X' }
 
-        // if game over, return the score as base case in recursion
-        // if(isWinner(board, 'X') || isWinner(board, 'O')){
-        //     return getScore(board)
-        // }
-
-        // set arrays to hold  moves and scores
-        // let scores = []
-        // let moves = []
-
-        // let possibleMoves = getAvailableMoves(board)
-        // console.log('POSSIBLE MOVES', possibleMoves)
-        
-        // for each move we get a copy of the board if we make that move then get the minimax score
-        // of that possible board. This will return +10 or -10 depending on player. we also save the 
-        // move for that specific score in the move aray
-        // possibleMoves.forEach( (move) => {
-        //     // console.log(move)
-        //     let possbileBoard = getBoardWithMove(board,move, player)       // first round of possible boards will be O, but second round is X
-        //     scores.push(minimax(possbileBoard, player))                         // scores from minimax determine the best move available
-        //     moves.push(move)                                            // moves added into array to coorespond with scores index
-        // })
-
-        // calculate max move or min move depending on player
-        // the best score is returned so that the algorithm can
-        // pick the best move at that point in the game
-        // if(player === 'O'){
-        //     let maxIndex = getMaxIndex(scores)
-        //     // new code from 9/30 to check for null move list
-        //     if(moves.length === 0){
-        //         return 0
-        //     }
-        //     let bestMove = moves[maxIndex]
-        //     updateAiChoice(bestMove)                // set the AI move to the best move
-        //     return scores[maxIndex]
-        // }
-        // else {
-        //     let minIndex = getMinIndex(scores)
-        //     if(moves.length === 0){
-        //         return 0
-        //     }
-        //     let bestMove = moves[minIndex]
-        //     updateAiChoice(bestMove)                // set the AI move to the best move            
-        //     return scores[minIndex]
-        // }
-
-        if(isWinner(board, 'X')){                       // base case = winner
-            return { move: null, score: 10 }            // +10 if X wins
+        if(isWinner(board, 'X')){
+            return { move: null, score: 10 }
         } else if (isWinner(board, 'O')){       
-            return { move: null, score: -10 }            // -10 if O wins
-        } else if (isTie(board)){
-            return { move: null, score: 0 }             // 0 if a tie=
+            return { move: null, score: -10 }
+        } else if (getAvailableMoves(board).length === 0){
+            return { move: null, score: 0 }
         }
 
         // return values based on max and min players
         let bestMove = {move: null, score: 0}
-        player === 'X' 
-            ? bestMove.score = -Infinity 
-            : bestMove.score = Infinity
+        if (player === 'X'){
+            bestMove.score = -Infinity
+        } else {
+            bestMove.score = Infinity
+        }
 
         // get scores for available moves
         getAvailableMoves(board).forEach((move) => {
@@ -289,56 +197,17 @@ export function ListProvider({ children }){
             let simScore = minimax(simBoard, player)                // get score for this simulated board
             if (player === 'X'){                                    // X's turn pick maximum score
                 if (simScore.score > bestMove.score){
-                    bestMove = simScore
+                    bestMove.move = move
+                    bestMove.score = simScore.score
                 }
             } else if (player === 'O') {                                                // O's turn pick minimum score
                 if (simScore.score < bestMove.score){
-                    bestMove = simScore
+                    bestMove.move = move
+                    bestMove.score = simScore.score
                 }
             }
         })
         return bestMove
-
-
-        /*
-        let bestMove = {move: None, score: infinity}
-        possibleMoves.forEach( (move) => {
-            simBoard = getBoardWithMove(board,move,player)
-            simScore = minimax(simBoard, player)
-            if player == AI we maximize score
-                if simScore.score > bestMove.score
-                    best = simScore
-            else we minimize score
-                if simScore.score < bestMove.score
-                    best = simScore
-
-        })
-        return best
-        */
-    }
-
-    let getMaxIndex = (array) => {
-        let max = 0
-        let index = 0
-        for(let i = 0; i < array.length; i++){
-            if(array[i] > max){
-                index = i
-                max = array[i]
-            }
-        }
-        return index
-    }
-    
-    let getMinIndex = (array) => {
-        let min = 100
-        let index = 0
-        for(let i = 0; i < array.length; i++){
-            if(array[i] < min){
-                index = i
-                min = array[i]
-            }
-        }
-        return index
     }
     
     const context = {
