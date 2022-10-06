@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react'
+import { act } from 'react-dom/test-utils'
 
 const BoardContext = React.createContext()          // context to be imported in components
 export function ListProvider({ children }){
     const [message, setMessage] = useState('may luck be in your favor')     // end game message
     const [currentPlayer, setCurrentPlayer] = useState('')                  // current player
-    const [gameOver, setGameOver] = useState(false)                         // active game
-    // const [aiChoice, setAiChoice] = useState([0,0])
+    const [startingPlayer, setStartingPlayer] = useState(false)
+    const [activeGame, setActiveGame] = useState(false)                         // active game
     const [boardData, setBoardData] = useState(                             // game board
-        [ ['', '', ''], ['', '', ''], ['', '', ''] ])       // initialized as empty at launch
-    const WINNING_COMBOS = [        // all possible winning moves as coordinates
+        [ ['', '', ''], ['', '', ''], ['', '', ''] ])                       // initialized as empty at launch
+    const WINNING_COMBOS = [        // possible winning moves
         [ [0,0], [0,1], [0,2] ],    // top row
         [ [1,0], [1,1], [1,2] ],    // middle row
         [ [2,0], [2,1], [2,2] ],    // bottom row
@@ -19,21 +20,16 @@ export function ListProvider({ children }){
         [ [0,2], [1,1], [2,0] ]     // tr diagnol to bl
     ]
     
-    useEffect(() => {                               // this runs whenever boardData is changed
-        console.log('INSIDE USE EFFECT')
-        // setAiChoice([2,2])
-        if(isBoardEmpty()){                         // start game as X when board is clear
-            setCurrentPlayer('X')
-        }
-        else if(isWinner(boardData, 'X') || isWinner(boardData, 'O')){        // check for winner
+    useEffect(() => {
+        if (isWinner(boardData, 'X') || isWinner(boardData, 'O')){        // check for winner
             setMessage(`${currentPlayer} wins`)     // set winning message
-            setGameOver(true)                       // game over is true
-            setCurrentPlayer('X')                   // player reset to X for new game
+            setActiveGame(false)
+            setStartingPlayer(false)
         }
         else if(isTie(boardData)){
-            setMessage(`tied`)          // set winning message
-            setGameOver(true)           // game over is true
-            setCurrentPlayer('X')       // player reset to X for new game
+            setMessage(`tied`)                      // set winning message
+            setActiveGame(false)
+            setStartingPlayer(false)
         }
         else if(currentPlayer === 'O'){
             setTimeout(() => {
@@ -60,25 +56,51 @@ export function ListProvider({ children }){
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [boardData])
 
+    let updateStartingPlayer = (player) => {
+        if (!activeGame && isBoardEmpty(boardData)){
+            if (startingPlayer)
+                alert('a starting player has already been chosen to start')
+            else {
+                setStartingPlayer(true)
+                setCurrentPlayer(player)
+                setActiveGame(true)
+                console.log(player, 'is starting')
+                if(player === "O"){
+                    setTimeout(() => {
+                        let bestMove = minimax(boardData, 'X')    
+                        addMoveToBoard(bestMove.move[0], bestMove.move[1], 'O')  
+                        changePlayer()
+                    }, 250)
+                }
+            }
+        }
+        else {
+            alert('Finish game and reset board to pick a new starter')
+        }
+    }
+
     let changePlayer = () => { 
         currentPlayer === 'X'
         ? setCurrentPlayer('O')
         : setCurrentPlayer('X')
-        
     }
 
     // the OnClick for every square if move is open it is played
-    // Only called when human makes play
     let checkMove = (x,y) => {
-        if (!gameOver){
+        if(activeGame){
             if(boardData[x][y] === ''){
                 addMoveToBoard(x,y, currentPlayer)
+                // useEffect runs before player change
                 if(!isWinner(boardData, 'X') && !isWinner(boardData, 'O')){
                     changePlayer()
                 }
             }
         }
-        else alert('reset board to play again')
+        // games over with moves on board
+        else if(!activeGame && !isBoardEmpty(boardData)){
+            alert('Clean board and select who starts')
+        }
+        else alert('Select a starting player')
     }
 
     // called only if valid move is clicked by user
@@ -86,7 +108,7 @@ export function ListProvider({ children }){
         console.log(currentPlayer, 'adding move -> ', x,y)
         let temp = [...boardData]
         temp[x][y] =  value
-        setBoardData(temp)
+        setBoardData(temp)          // useEffect is ran here
     }
    
     // compare board with winning combos
@@ -97,9 +119,11 @@ export function ListProvider({ children }){
             let a = board[combo[0][0]][combo[0][1]]
             let b = board[combo[1][0]][combo[1][1]]
             let c = board[combo[2][0]][combo[2][1]]
-            if(a !== '' && a === b && b === c && a === player) return true
+            if(a !== '' && a === b && b === c && a === player) {
+                return true
+            }
         }
-        return false        // no winning combos are found
+        return false
     }
 
     // ties only happen if no moves left
@@ -115,7 +139,9 @@ export function ListProvider({ children }){
     // reset state of the game
     let cleanBoard = () => {
         setBoardData( [ ['', '', ''], ['', '', ''], ['', '', ''] ] )
-        setGameOver(false)
+        setActiveGame(false)
+        setStartingPlayer(false)
+        setCurrentPlayer('')
         setMessage('may luck be in your favor')
     }
 
@@ -126,7 +152,6 @@ export function ListProvider({ children }){
         addMoveToBoard(move[0],move[1], currentPlayer)              // move to random open square
     }
 
-    // helper function for random AI player
     let getRandomInt = (max) => {
         return Math.floor(Math.random() * max);
     }
@@ -200,7 +225,7 @@ export function ListProvider({ children }){
                     bestMove.move = move
                     bestMove.score = simScore.score
                 }
-            } else if (player === 'O') {                                                // O's turn pick minimum score
+            } else if (player === 'O') {                            // O's turn pick minimum score
                 if (simScore.score < bestMove.score){
                     bestMove.move = move
                     bestMove.score = simScore.score
@@ -211,8 +236,8 @@ export function ListProvider({ children }){
     }
     
     const context = {
-        actions: {checkMove, cleanBoard},               // helper functions
-        state: {boardData, setBoardData, message}       // state getters and setters
+        actions: {checkMove, cleanBoard, updateStartingPlayer},                           // helper functions
+        state: {boardData, setBoardData, message}                   // state getters and setters
     }
 
     return (
