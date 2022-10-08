@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import { act } from 'react-dom/test-utils'
 
 const BoardContext = React.createContext()          // context to be imported in components
 export function ListProvider({ children }){
