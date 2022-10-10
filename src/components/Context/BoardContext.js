@@ -39,6 +39,7 @@ export function ListProvider({ children }){
                 }
             }, 250)
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [boardData])
 
     let updateStartingPlayer = (player) => {
