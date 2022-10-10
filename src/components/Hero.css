@@ -16,10 +16,10 @@
 }
 
 .player_selection button {
-    width: 4rem;
+    width: 6rem;
     margin: .5rem;
     font-size: 1rem;
-    padding: .25rem;
+    padding: .5rem;
 }
 
 .player_selection button:active{
