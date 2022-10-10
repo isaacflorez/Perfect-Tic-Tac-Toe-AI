@@ -11,6 +11,7 @@
     align-items: center;
     justify-content: center;
     margin: 0;
+    padding: 0;
 }
 #a, #b, #c { border-top: none; }
 #a, #d, #g { border-left: none; }

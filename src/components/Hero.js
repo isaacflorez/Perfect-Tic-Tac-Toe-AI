@@ -9,7 +9,7 @@ const Hero = () => {
         <p className="hero_sub_title">who goes first?</p>
         <div className="player_selection">
           <button onClick={ () => context.actions.updateStartingPlayer('O') } >ai</button>
-          <button onClick={ () => context.actions.updateStartingPlayer('X') } >human</button>
+          <button onClick={ () => context.actions.updateStartingPlayer('X') } >me</button>
         </div>
     </section>
   )
