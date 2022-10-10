@@ -1,6 +1,6 @@
 .hero {
     text-align: center;
-    margin-bottom: 4rem;
+    margin-bottom: 2.5rem;
 }
 .hero_title, .hero_sub_title{
     margin: 0;
@@ -16,7 +16,7 @@
 }
 
 .player_selection button {
-    width: 7rem;
+    width: 4rem;
     margin: .5rem;
     font-size: 1rem;
     padding: .25rem;

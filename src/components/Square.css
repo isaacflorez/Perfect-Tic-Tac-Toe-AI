@@ -6,6 +6,10 @@
     cursor: pointer;
     background-color: white;
     border: 1px solid black;
+    color: black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 #a, #b, #c { border-top: none; }
 #a, #d, #g { border-left: none; }

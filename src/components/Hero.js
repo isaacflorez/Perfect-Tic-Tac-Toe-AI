@@ -6,10 +6,10 @@ const Hero = () => {
   return (
     <section className="hero">
         <h1 className="hero_title">tic tac toe</h1>
-        <p className="hero_sub_title">beat me if you can (:</p>
+        <p className="hero_sub_title">who goes first?</p>
         <div className="player_selection">
-          <button onClick={ () => context.actions.updateStartingPlayer('O') } >ai starts</button>
-          <button onClick={ () => context.actions.updateStartingPlayer('X') } >human starts</button>
+          <button onClick={ () => context.actions.updateStartingPlayer('O') } >ai</button>
+          <button onClick={ () => context.actions.updateStartingPlayer('X') } >human</button>
         </div>
     </section>
   )
