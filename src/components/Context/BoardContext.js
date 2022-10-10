@@ -32,7 +32,7 @@ export function ListProvider({ children }){
         }
         else if(currentPlayer === 'O'){
             setTimeout(() => {
-                let bestMove = minimax(boardData, 'X')                          // get minimax move
+                let bestMove = minimax(boardData, 'X', 0)                       // get minimax move
                 addMoveToBoard(bestMove.move[0], bestMove.move[1], 'O')         // add move
                 if(!isWinner(boardData, 'O')){                                  // change player if no win
                     changePlayer()
@@ -85,7 +85,6 @@ export function ListProvider({ children }){
     }
 
     let addMoveToBoard = (x,y, value) => {
-        console.log(currentPlayer, 'adding move -> ', x,y)
         let temp = [...boardData]
         temp[x][y] =  value
         setBoardData(temp)          // useEffect is runs after this
@@ -160,13 +159,13 @@ export function ListProvider({ children }){
         return copy
     }
 
-    let minimax = (board, player) => {                  // MiniMax Algorithim for AI
+    let minimax = (board, player, depth) => {                  // MiniMax Algorithim for AI
         if (player === 'X') player = 'O'                // Update player every recursion
         else { player = 'X' }
 
         // Base Cases for simulated score boards
-        if(isWinner(board, 'X')) return { move: null, score: 10 }
-        else if (isWinner(board, 'O')) return { move: null, score: -10 } 
+        if(isWinner(board, 'X')) return { move: null, score: 10 - depth}
+        else if (isWinner(board, 'O')) return { move: null, score: depth - 10 } 
         else if (getAvailableMoves(board).length === 0) return { move: null, score: 0 }
 
         // Set return value based on Min or Max player
@@ -177,10 +176,9 @@ export function ListProvider({ children }){
             bestMove.score = Infinity
         }
 
-        // get scores for available moves
-        getAvailableMoves(board).forEach((move) => {
+        getAvailableMoves(board).forEach((move) => {                // get scores for available moves
             let simBoard = getBoardWithMove(board, move, player)    // simulate a board with move made
-            let simScore = minimax(simBoard, player)                // get score for this simulated board
+            let simScore = minimax(simBoard, player, depth + 1)     // get score for this simulated board
             if (player === 'X'){                                    // X wants maximum score
                 if (simScore.score > bestMove.score){
                     bestMove.move = move

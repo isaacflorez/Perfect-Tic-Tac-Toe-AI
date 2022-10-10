@@ -21,3 +21,7 @@
     font-size: 1rem;
     padding: .25rem;
 }
+
+.player_selection button:active{
+    transform: scale(.92);
+}
